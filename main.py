@@ -6,6 +6,7 @@ import time
 import argparse
 import numpy as np
 import random
+from pathlib import Path
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -134,9 +135,13 @@ for epoch in range(args.epochs):
         test_loss = test(test_loader)
         best_epoch = epoch
         best_val_loss = val_loss
+        best_model = model.state_dict()
 
     print('Epoch: {:03d}, Train MAE: {:.7f}, Validation MAE: {:.7f}, '
           'Test MAE: {:.7f}'.format(epoch+1, train_loss, val_loss, test_loss))
+
+torch.save(model.state_dict(), os.path.join(str(Path.home()), 'temporary/mxmnet/latest_model.pkl')
+torch.save(best_model.state_dict(), os.path.join(str(Path.home()), 'temporary/mxmnet/best_model.pkl')
 
 print('===================================================================================')
 print('Best Epoch:', best_epoch)
