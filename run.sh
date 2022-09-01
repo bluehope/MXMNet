@@ -13,6 +13,7 @@ module purge
 module load singularity/3.9.7
 module load htop nvtop
 module load gcc/10.2.0
+module load cuda/11.4
 module load cudampi/openmpi-4.1.1
 module load cuda/10.2
 module list
