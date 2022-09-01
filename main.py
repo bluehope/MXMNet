@@ -142,7 +142,8 @@ for epoch in range(args.epochs):
     print('Epoch: {:03d}, Train MAE: {:.7f}, Validation MAE: {:.7f}, '
           'Test MAE: {:.7f}'.format(epoch+1, train_loss, val_loss, test_loss))
 
-torch.save(model.state_dict(), os.path.join(str(Path.home()), 'temporary/mxmnet/latest_model.pkl'))
+    torch.save(model.state_dict(), os.path.join(str(Path.home()), 'temporary/mxmnet/latest_model.pkl'))
+
 torch.save(best_model_state, os.path.join(str(Path.home()), 'temporary/mxmnet/best_model.pkl'))
 
 print('===================================================================================')
