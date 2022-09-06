@@ -14,7 +14,12 @@ from qm9_dataset import QM9
 
 def main(args: Dict[str, Any]) -> None:
 
-    pass
+    config = Config(dim = args['dim'], n_layer = args['n_layer'], cutoff = args['cutoff'])
+    model = MXMNet(config)
+    model.load_state_dict(torch.load(args['model_checkpoint'], map_location = 'cpu'))
+    model = model.to('cuda')
+
+    
 
 
 if __name__ == '__main__':
