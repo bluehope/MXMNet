@@ -10,8 +10,8 @@ import torch.nn.functional as F
 import torch.autograd
 from torch_geometric.data import DataLoader
 
-from model import MXMNet, Config
 from qm9_dataset import QM9
+from model import MXMNet, Config
 
 
 class MyTransform(object):
@@ -33,31 +33,6 @@ class MyTransform(object):
         return data
 
 
-def measure_force(model: nn.Module,
-                dataloader: DataLoader) -> None:
-
-    count_atom = 0
-    force_sum = 0
-
-    for data in dataloader:
-
-        data = data.to('cuda')
-        data.pos = data.pos.requires_grad_(True)
-        data.pos.retain_grad()
-
-        output = model(data)
-        force = torch.autograd.grad(output,
-                                    data.pos,
-                                    grad_outputs = torch.ones_like(output).to('cuda'),
-                                    create_graph = True)[0]
-
-        num_atom = data.batch.size(0)
-        count_atom += num_atom
-        force_sum += torch.sum(torch.sqrt(torch.sum(force ** 2, dim = -1))).item()
-
-    return force_sum / count_atom
-
-
 def main(args: Dict[str, Any]) -> None:
 
     config = Config(dim = args['dim'], n_layer = args['n_layer'], cutoff = args['cutoff'])
@@ -69,20 +44,7 @@ def main(args: Dict[str, Any]) -> None:
     dataset = QM9(path, transform = MyTransform(args['target'])).shuffle()
     print('# of graphs:', len(dataset))
 
-    train_dataset = dataset[:110000]
-    val_dataset = dataset[110000:120000]
-    test_dataset = dataset[120000:]
-
-    train_loader = DataLoader(train_dataset, batch_size = args['batch_size'], shuffle = False)
-    test_loader = DataLoader(test_dataset, batch_size = args['batch_size'], shuffle = False)
-    val_loader = DataLoader(val_dataset, batch_size = args['batch_size'], shuffle = False)
-
-    train_force = measure_force(model, train_loader)
-    test_force = measure_force(model, test_loader)
-    val_force = measure_force(model, val_loader)
-
-    print('[info] Model checkpoint: {}'.format(args['model_checkpoint']))
-    print('[info] Train force: {:.7f}, Test force: {:.7f}, Valid force: {:.7f}'.format(train_force, test_force, val_force))
+    dataloader = DataLoader(dataset, batch_size = args['batch_size'], shuffle = False)
 
 
 if __name__ == '__main__':
