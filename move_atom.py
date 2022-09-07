@@ -47,6 +47,40 @@ def main(args: Dict[str, Any]) -> None:
     dataloader = DataLoader(dataset, batch_size = args['batch_size'], shuffle = False)
 
 
+
+
+
+
+
+
+
+
+# CH4 = QM9 (dsgdb9nsd_000001.xyz)
+
+# AtomZ = [6, 1, 1, 1, 1] 
+
+# Position = [[-1.26981359e-02,  1.08580416e+00,  8.00099580e-03],
+#        [ 2.15041600e-03, -6.03131760e-03,  1.97612040e-03],
+#        [ 1.01173084e+00,  1.46375116e+00,  2.76574800e-04],
+#        [-5.40815069e-01,  1.44752661e+00, -8.76643715e-01],
+#        [-5.23813634e-01,  1.43793264e+00,  9.06397294e-01]]
+
+# displacement_direction = torch.linspace(-7,7,70*2)
+
+# for (d_i, delta) in enumerate(z_direction):
+#     Position2 = copy.copy(Position)
+#     Position2[-1,1] += delta # y shift
+#     Position2[-1,2] += delta # z  shift
+
+# Energy, forces = model(Position2, AtomZ)
+
+# mean_force = torch.mean(torch.sqrt(torch.sum(forces**2, dim=1))).item()
+
+
+
+
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
