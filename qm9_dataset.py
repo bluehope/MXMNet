@@ -210,12 +210,9 @@ class QM9(InMemoryDataset):
 
             ################ select only CH4 ################
 
-            if atomic_number.count(6) == 1 and atomic_number.count(1) == 4:
+            if not (len(atomic_number) == 5 and atomic_number.count(6) == 1 and atomic_number.count(1) == 4):
 
-                pass
-
-            else: continue
-
+                continue
 
             ################ select only CH4 ################
 
