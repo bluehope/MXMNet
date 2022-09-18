@@ -72,8 +72,6 @@ if __name__ == '__main__':
     parser.add_argument('--cutoff', type = float,
                         default = 5.0,
                         help = 'distance cutoff used in the global layer')
-    parser.add_argument('--output', type = str,
-                        help = 'figure file path')
     args = vars(parser.parse_args())
 
     main(args)
