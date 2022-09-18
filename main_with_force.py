@@ -31,6 +31,7 @@ parser.add_argument('--dataset', type=str, default="QM9", help='Dataset')
 parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--target', type=int, default="7", help='Index of target (0~11) for prediction')
 parser.add_argument('--cutoff', type=float, default=5.0, help='Distance cutoff used in the global layer')
+parser.add_argument('--force_coef', type=float, default=0.1, help='Coefficient of force loss')
 
 args = parser.parse_args()
 
@@ -81,6 +82,8 @@ test_dataset = dataset[120000:]
 
 #Load dataset
 train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, worker_init_fn=args.seed)
+# test_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, worker_init_fn=args.seed)
+# val_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, worker_init_fn=args.seed)
 test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
 
@@ -110,24 +113,45 @@ for epoch in range(args.epochs):
     step = 0
     model.train()
 
-    for data in train_loader:
-        data = data.to(device)
+    with torch.autograd.detect_anomaly():
 
+        for data in train_loader:
+            data = data.to(device)
+            data.pos = data.pos.requires_grad_(True)
+            data.pos.retain_grad()
 
-        optimizer.zero_grad()
+            output = model(data)
+            force = torch.autograd.grad(output,
+                                        data.pos,
+                                        grad_outputs = torch.ones_like(output).to('cuda'),
+                                        create_graph = True,retain_graph = True)[0]
 
-        output = model(data)
-        loss = F.l1_loss(output, data.y)
-        loss_all += loss.item() * data.num_graphs
-        loss.backward()
-        clip_grad_norm_(model.parameters(), max_norm=1000, norm_type=2)
-        optimizer.step()
-        
-        curr_epoch = epoch + float(step) / (len(train_dataset) / args.batch_size)
-        scheduler_warmup.step(curr_epoch)
+            loss_e = F.l1_loss(output, data.y)
+            loss_f = F.l1_loss(force, torch.zeros_like(force)) * args.force_coef
+            loss_f = force.pow(2).sum() * args.force_coef
+            loss_all += loss_e.item() * data.num_graphs + loss_f.item() * data.num_graphs * args.force_coef
 
-        ema(model)
-        step += 1
+            # optimizer.zero_grad()
+            # loss_total = loss_e + args.force_coef * loss_f
+            # loss_total.backward()
+            # clip_grad_norm_(model.parameters(), max_norm=1000, norm_type=2)
+            # optimizer.step()
+            
+            optimizer.zero_grad()
+            loss_e.backward()
+            clip_grad_norm_(model.parameters(), max_norm=1000, norm_type=2)
+            optimizer.step()
+
+            optimizer.zero_grad()
+            loss_f.backward()
+            clip_grad_norm_(model.parameters(), max_norm=1000, norm_type=2)
+            optimizer.step()
+            
+            curr_epoch = epoch + float(step) / (len(train_dataset) / args.batch_size)
+            scheduler_warmup.step(curr_epoch)
+
+            ema(model)
+            step += 1
 
     train_loss = loss_all / len(train_loader.dataset)
 

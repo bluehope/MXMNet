@@ -180,7 +180,9 @@ class QM9(InMemoryDataset):
             if i in skip:
                 continue
 
+
             N = mol.GetNumAtoms()
+
 
             pos = suppl.GetItemText(i).split('\n')[4:4 + N]
             pos = [[float(x) for x in line.split()[:3]] for line in pos]
@@ -201,6 +203,30 @@ class QM9(InMemoryDataset):
                 sp.append(1 if hybridization == HybridizationType.SP else 0)
                 sp2.append(1 if hybridization == HybridizationType.SP2 else 0)
                 sp3.append(1 if hybridization == HybridizationType.SP3 else 0)
+
+
+
+
+
+            ################ select only CH4 ################
+
+            if not (len(atomic_number) == 5 and atomic_number.count(6) == 1 and atomic_number.count(1) == 4):
+
+                continue
+
+            ################ select only CH4 ################
+
+
+
+
+
+
+
+
+
+
+
+
 
             z = torch.tensor(atomic_number, dtype=torch.long)
 
